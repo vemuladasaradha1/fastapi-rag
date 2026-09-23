@@ -20,7 +20,7 @@ import numpy as np
 #print(f"Success! Generated {len(embeddings)} embeddings without PyTorch.")
 
 
-from sentence_transformers import SentenceTransformer
+#from sentence_transformers import SentenceTransformer
 load_dotenv()
 
 
@@ -97,7 +97,7 @@ def get_faiss_index():
     # index = faiss.IndexFlatL2(dimension)
     # index.add(embeddings)
     #embeddings = list(model.embed(DOCUMENTS))
-    embeddings = np.stack(list(model.embed(
+    embeddings = np.stack(list(embedding_model.embed(
         DOCUMENTS,
     convert_to_numpy=True)))
     embeddings = np.array(embeddings).astype("float32")

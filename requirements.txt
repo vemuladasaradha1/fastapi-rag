@@ -7,3 +7,5 @@ langchain-core
 sentence-transformers
 faiss-cpu
 numpy
+python-dotenv
+fastembed

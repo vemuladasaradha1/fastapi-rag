@@ -1,3 +1,5 @@
+#from data.test import model_name_id
+#from data.test import model_cache_base_dir
 import os
 from functools import lru_cache
 from . import *
@@ -5,6 +7,18 @@ from . import *
 import faiss
 from groq import Groq
 from dotenv import load_dotenv
+from fastembed import TextEmbedding
+import numpy as np
+
+# Load a highly efficient, CPU-optimized text embedding model
+#model = TextEmbedding("BAAI/bge-small-en-v1.5")
+
+# Generate embeddings
+# documents = ["Hello World", "FastEmbed is incredibly lightweight."]
+# embeddings = list(model.embed(documents))
+
+#print(f"Success! Generated {len(embeddings)} embeddings without PyTorch.")
+
 
 from sentence_transformers import SentenceTransformer
 load_dotenv()
@@ -37,17 +51,27 @@ DOCUMENTS = [
     
     DASARADAHA is a good boy who live in hyderabad and curently had an circumcision operation
     for the foreskin called circumcision. he is still recovering from the pain.
-    """,
+    """
 ]
 
 MODEL_NAME = "openai/gpt-oss-20b"
-EMBEDDING_MODEL_NAME = "all-MiniLM-L6-v2"
+#EMBEDDING_MODEL_NAME = "all-MiniLM-L6-v2"
+EMBEDDING_MODEL_NAME = "BAAI/bge-small-en-v1.5"
+model = TextEmbedding("BAAI/bge-small-en-v1.5")
+
 
 
 @lru_cache(maxsize=1)
 def get_embedding_model():
-    return SentenceTransformer(EMBEDDING_MODEL_NAME)
+    #return SentenceTransformer(EMBEDDING_MODEL_NAME)
+    model_cache_base_dir = r"C:\Users\user\Downloads\rag_docker_project\data\fastembed_model_package"
+    model_name_id = "BAAI/bge-small-en-v1.5"
 
+    print(f"Loading model '{model_name_id}' from the cache directory: {model_cache_base_dir}...")
+# Load the model, specifying the cache_dir where fastembed stored it
+    cached_model = TextEmbedding(model_name_id, cache_dir=model_cache_base_dir)
+    return cached_model
+#TextEmbedding
 
 @lru_cache(maxsize=1)
 def get_groq_client():
@@ -60,11 +84,26 @@ def get_groq_client():
 @lru_cache(maxsize=1)
 def get_faiss_index():
     embedding_model = get_embedding_model()
-    embeddings = embedding_model.encode(
-        DOCUMENTS,
-        convert_to_numpy=True,
-    ).astype("float32")
+    # embeddings = embedding_model.embed(
+    #     DOCUMENTS,
+    #     convert_to_numpy=True,
+    # ).astype("float32")
 
+    # embeddings = np.stack(list(embedding_model.embed([
+    #     DOCUMENTS,
+    # ], convert_to_numpy=True))).astype("float32")
+
+    # dimension = embeddings.shape[1]
+    # index = faiss.IndexFlatL2(dimension)
+    # index.add(embeddings)
+    #embeddings = list(model.embed(DOCUMENTS))
+    embeddings = np.stack(list(model.embed(
+        DOCUMENTS,
+    convert_to_numpy=True)))
+    embeddings = np.array(embeddings).astype("float32")
+
+
+    #print(embeddings)
     dimension = embeddings.shape[1]
     index = faiss.IndexFlatL2(dimension)
     index.add(embeddings)
@@ -77,10 +116,11 @@ def retrieve_documents(query: str, k: int = 3):
 
     k = min(k, len(DOCUMENTS))
 
-    query_embedding = embedding_model.encode(
+    query_embedding = embedding_model.embed(
         [query],
         convert_to_numpy=True,
-    ).astype("float32")
+    )
+    query_embedding = np.stack(list(query_embedding)).astype("float32")
 
     distances, indices = index.search(query_embedding, k)
 

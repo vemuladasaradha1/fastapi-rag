@@ -49,8 +49,8 @@ DOCUMENTS = [
     similarity searches. They are commonly used in RAG systems to retrieve
     information relevant to a user's query.
     
-    DASARADAHA is a good boy who live in hyderabad and curently had an circumcision operation
-    for the foreskin called circumcision. he is still recovering from the pain.
+    DASARADAHA is a good boy who lives in hyderaba , india. He love building useful digital, physical products and services which can help the people
+    to make their lives easier and to save thier efforts. The only way to earn money is by building useful products and services
     """
 ]
 
